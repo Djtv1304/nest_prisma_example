@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// Definición del modelo User
+model User {
+  id        Int    @id @default(autoincrement()) // Llave primaria, autoincrementada
+  username  String @unique @db.VarChar(50) // Nombre de usuario único, máximo 50 caracteres
+  firstName String @db.VarChar(50) // Primer nombre, requerido, máximo 50 caracteres
+  lastName  String @db.VarChar(50) // Apellido, requerido, máximo 50 caracteres
+  password  String @db.VarChar(255) // Contraseña, requerida, máximo 255 caracteres
+
+  // Relación uno a uno con Passenger
+  passenger Passenger?
+}
+
+// Definición del modelo Passenger
+model Passenger {
+  id           Int      @id @default(autoincrement()) // Llave primaria, autoincrementada
+  identify     String   @db.VarChar(20) // Identificación única, requerida, máximo 20 caracteres
+  typeDocument String   @db.VarChar(10) // Tipo de documento, requerido, máximo 10 caracteres
+  birthday     DateTime // Fecha de nacimiento, requerida
+  height       String   @db.VarChar(20)
+  ancho        String   @default("0") @db.VarChar(20)
+
+  // Relación uno a uno con User
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id])
+
+  // Relación uno a muchos con Activity
+  activities Activity[]
+
+  // Relación uno a uno con Form
+  form Form?
+}
+
+// Definición del modelo Activity
+model Activity {
+  id          Int    @id @default(autoincrement()) // Llave primaria, autoincrementada
+  description String @db.VarChar(255) // Descripción, requerida, máximo 255 caracteres
+
+  // Relación muchos a uno con Passenger
+  passengerId Int
+  passenger   Passenger @relation(fields: [passengerId], references: [id])
+}
+
+// Definición del modelo Form
+model Form {
+  id        Int    @id @default(autoincrement()) // Llave primaria, autoincrementada
+  respuesta String @db.VarChar(500) // Respuesta, requerida, máximo 500 caracteres
+
+  // Relación uno a uno con Passenger
+  passengerId Int       @unique
+  passenger   Passenger @relation(fields: [passengerId], references: [id])
+}
